@@ -1,0 +1,94 @@
+.ignoredUserMessage,
+.ignoredUserContent {
+    display: none!important;
+}
+
+.balloonTooltip {
+    max-width: 430px !important;
+}
+
+.content-blocker-settings-bg {
+    background-color: rgba(0, 0, 0, 0.4);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.content-blocker-settings-panel {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    min-width: 400px;
+    min-height: 300px;
+    max-height: 80vh;
+    max-width: 50vh;
+    background: rgb(250, 250, 250);
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 12px 28px 0, rgba(0, 0, 0, 0.1) 0 2px 4px 0;
+}
+
+.content-blocker-settings-heading {
+    font-size: 18px;
+    line-height: 1.28;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.content-blocker-settings-entry {
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background-color 20ms ease-in-out;
+    border-bottom: 1px solid #bfbfbf;
+    user-select: none;
+}
+
+.content-blocker-settings-entry:hover {
+    background: rgba(60, 60, 60, 0.1);
+}
+
+.content-blocker-settings-entry:active {
+    background: rgba(190, 60, 60, 0.2);
+}
+
+.content-blocker-settings-panel-close {
+    user-select: none;
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    font-size: 32px;
+    cursor: pointer;
+    height: 32px;
+    line-height: 32px;
+    width: 32px;
+    text-align: center;
+    display: inline-block;
+}
+
+.content-blocker-settings-spacer {
+    height: 28px;
+}
+
+.content-blocker-settings-placeholder {
+    color: #505050;
+}
+
+.section {
+    opacity: 0.05;
+    transition: opacity 100ms ease-out;
+}
+
+.blocked-reaction-entry {
+    filter: blur(4px) grayscale(100);
+    opacity: 0.2;
+    user-select: none;
+    pointer-events: none;
+}
