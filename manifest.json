@@ -17,7 +17,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "e39-forum-blocker",
+      "id": "{5f1f5dc9-7828-4cd2-894c-71acc7b01455}",
       "data_collection_permissions": {
         "required": ["websiteContent"]
       }
