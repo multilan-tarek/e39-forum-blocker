@@ -14,5 +14,10 @@
       "css": ["main.css"],
       "js": ["main.js"]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "e39forumblocker@20250920"
+    }
+  }
 }
