@@ -254,7 +254,8 @@ function filterContent() {
         ...document.querySelectorAll(".containerList:not(.jsGroupedUserList) li:not(.jsIgnoredUser)"),
         ...document.querySelectorAll(".wbbBoardNode__lastPost"),
         ...document.querySelectorAll(".gridListItem"),
-        ...document.querySelectorAll(".userMenuItem")
+        ...document.querySelectorAll(".userMenuItem"),
+        ...document.querySelectorAll(".ck-mentions .ck-list__item")
     ];
 
     for (let listItem of listItems) {
