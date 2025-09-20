@@ -5,6 +5,7 @@ let blockedUsers = {};
 let blockedStrings = [];
 let tooltipInitDone = false;
 let userMenuInitDone = false;
+let enabled = true;
 
 function setCookie(c_name, c_value, ex_days) {
     const d = new Date();
@@ -31,11 +32,15 @@ function getCookie(c_name, fallback) {
 function saveCookies() {
     setCookie("BING_BLOCKED_USERS", JSON.stringify(blockedUsers), 365);
     setCookie("BING_BLOCKED_STRINGS", JSON.stringify(blockedStrings), 365);
+    setCookie("BING_ENABLED", enabled ? "1" : "0", 365);
 }
 
 async function loadCookies() {
     blockedUsers = JSON.parse(getCookie("BING_BLOCKED_USERS", "{}"));
     blockedStrings = JSON.parse(getCookie("BING_BLOCKED_STRINGS", "[]"));
+    enabled = getCookie("BING_ENABLED", "1") === "1";
+
+    console.log(enabled)
 }
 
 function addToBlacklist() {
@@ -63,6 +68,27 @@ function openSettings() {
     settingsClose.innerText = "×"
     settingsClose.addEventListener("click", closeSettings);
 
+    let settingsEnableContainer = document.createElement("DIV");
+    settingsEnableContainer.className = "content-blocker-settings-panel-enable-container";
+
+    let settingsEnable = document.createElement("INPUT");
+    settingsEnable.id = "content-blocker-settings-panel-enable";
+    settingsEnable.setAttribute("type", "checkbox");
+    if (enabled) {
+        settingsEnable.setAttribute("checked", "");
+    }
+    settingsEnable.addEventListener("change", function () {
+        enabled = settingsEnable.checked;
+        saveCookies();
+    });
+
+    let settingsEnableLabel = document.createElement("LABEL");
+    settingsEnableLabel.setAttribute("for", "content-blocker-settings-panel-enable");
+    settingsEnableLabel.innerText = "Aktivieren";
+
+    settingsEnableContainer.appendChild(settingsEnable);
+    settingsEnableContainer.appendChild(settingsEnableLabel);
+
     let headingUsers = document.createElement("SPAN");
     headingUsers.innerText = "Blockierte Benutzer"
     headingUsers.className = "content-blocker-settings-heading";
@@ -75,6 +101,7 @@ function openSettings() {
     spacer.className = "content-blocker-settings-spacer";
 
     settingsPanel.appendChild(settingsClose);
+    settingsPanel.appendChild(settingsEnableContainer);
     settingsPanel.appendChild(headingUsers);
 
     if (Object.keys(blockedUsers).length === 0) {
@@ -146,130 +173,130 @@ function openSettings() {
 function closeSettings() {
     document.querySelector("html").style.overflow = "auto";
     document.getElementById("content-blocker-settings").remove();
+    document.location.reload();
 }
 
 function filterContent() {
-    const blueBars = document.querySelectorAll("article.ignoredUserMessage");
+    if (enabled) {
+        const ignoredItems = [
+            ...document.querySelectorAll(".ignoredUserMessage"),
+            ...document.querySelectorAll(".ignoredUserContent")
+        ]
 
-    for (let blueBar of blueBars) {
-        let userId = blueBar.getAttribute("data-user-id");
-        let username = blueBar.getAttribute("data-ignored-user-message")
-        username = username.replace(BLUE_BAR_HEADER_PREFIX, "")
-        username = username.replace(BLUE_BAR_HEADER_SUFFIX, "")
-
-        if (!Object.keys(blockedUsers).includes(userId)) {
-            blockedUsers[userId] = username;
+        for (let ignoredItem of ignoredItems) {
+            ignoredItem.style.display = "none";
         }
 
-        blueBar.parentElement.remove();
-    }
+        const blueBars = document.querySelectorAll("article.ignoredUserMessage");
 
-    const articles = document.querySelectorAll("article.message");
+        for (let blueBar of blueBars) {
+            let userId = blueBar.getAttribute("data-user-id");
+            let username = blueBar.getAttribute("data-ignored-user-message")
+            username = username.replace(BLUE_BAR_HEADER_PREFIX, "")
+            username = username.replace(BLUE_BAR_HEADER_SUFFIX, "")
 
-    for (let article of articles) {
-        let messageText = article.querySelector("div.messageText");
+            if (!Object.keys(blockedUsers).includes(userId)) {
+                blockedUsers[userId] = username;
+            }
 
-        if (messageText == null) {
-            continue;
+            blueBar.parentElement.remove();
         }
 
-        let blockquotes = messageText.querySelectorAll("blockquote");
+        const articles = document.querySelectorAll("article.message");
 
-        if (blockquotes.length === 0) {
-            for (let username of Object.values(blockedUsers)) {
-                if (messageText.innerHTML.includes(username)) {
-                    article.parentElement.remove();
-                    break;
-                }
-            }
-            for (let string of blockedStrings) {
-                if (messageText.innerHTML.includes(string)) {
-                    article.parentElement.remove();
-                    break;
-                }
-            }
-        }
+        for (let article of articles) {
+            let messageText = article.querySelector("div.messageText");
 
-        for (let blockquote of blockquotes) {
-            let associatedElements = [blockquote];
-            let currentElement = blockquote.nextElementSibling;
-
-            while (currentElement != null) {
-                if (["HR", "BLOCKQUOTE"].includes(currentElement.nodeName)) {
-                    break
-                }
-
-                if (currentElement.nodeType === 1) {
-                    associatedElements.push(currentElement)
-                }
-
-                currentElement = currentElement.nextSibling;
-            }
-
-            let deleteSection = false;
-
-            for (let username of Object.values(blockedUsers)) {
-                for (let element of associatedElements) {
-                    if (element.innerHTML.includes(username)) {
-                        deleteSection = true;
-                        break;
-                    }
-                }
-            }
-
-            for (let string of blockedStrings) {
-                for (let element of associatedElements) {
-                    if (element.innerHTML.includes(string)) {
-                        deleteSection = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!deleteSection) {
+            if (messageText == null) {
                 continue;
             }
 
-            for (let element of associatedElements) {
-                element.remove();
+            let articleSections = [];
+            let currentSection = [];
+            let currentElement = messageText.firstElementChild;
+
+            while (1) {
+                currentSection.push(currentElement);
+                currentElement = currentElement.nextElementSibling;
+
+                if (currentElement === null) {
+                    articleSections.push([...currentSection]);
+                    break;
+
+                } else if (["HR", "BLOCKQUOTE"].includes(currentElement.nodeName)) {
+                    articleSections.push([...currentSection]);
+                    currentSection = [];
+                }
+            }
+
+            for (let articleSection of articleSections) {
+                let deleteSection = false;
+
+                for (let element of articleSection) {
+                    for (let string of [...Object.values(blockedUsers), ...blockedStrings]) {
+                        if (element.innerHTML.includes(string)) {
+                            deleteSection = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!deleteSection) {
+                    continue;
+                }
+
+                for (let element of articleSection) {
+                    element.style.background = "red"
+                    element.remove();
+                }
             }
 
             if (messageText.innerText.trim() === "") {
                 article.parentElement.remove();
+                continue;
             }
-        }
-    }
 
-    const reactionListItems = document.querySelectorAll("ol.containerList.jsGroupedUserList li");
+            let separators = messageText.querySelectorAll("hr");
 
-    for (let listItem of reactionListItems) {
-        let userId = listItem.getAttribute("data-object-id");
+            for (let seperator of separators) {
+                if (seperator === messageText.firstElementChild) {
+                    seperator.remove();
+                }
 
-        if (Object.keys(blockedUsers).includes(userId)) {
-            listItem.classList.add("blocked-reaction-entry");
-        }
-    }
+                if (seperator === messageText.lastElementChild) {
+                    seperator.remove();
+                }
 
-    let listItems = [
-        ...document.querySelectorAll(".containerList:not(.jsGroupedUserList) li:not(.jsIgnoredUser)"),
-        ...document.querySelectorAll(".wbbBoardNode__lastPost"),
-        ...document.querySelectorAll(".gridListItem"),
-        ...document.querySelectorAll(".userMenuItem"),
-        ...document.querySelectorAll(".ck-mentions .ck-list__item")
-    ];
-
-    for (let listItem of listItems) {
-        for (let username of Object.values(blockedUsers)) {
-            if (listItem.innerHTML.includes(username)) {
-                listItem.remove();
-                break;
+                if (seperator.nextElementSibling.nodeName === "HR") {
+                    seperator.remove();
+                }
             }
         }
 
-        for (let string of blockedStrings) {
-            if (listItem.innerHTML.includes(string)) {
-                listItem.remove();
-                break;
+        const reactionListItems = document.querySelectorAll("ol.containerList.jsGroupedUserList li");
+
+        for (let listItem of reactionListItems) {
+            let userId = listItem.getAttribute("data-object-id");
+
+            if (Object.keys(blockedUsers).includes(userId)) {
+                listItem.classList.add("blocked-reaction-entry");
+            }
+        }
+
+        let listItems = [
+            ...document.querySelectorAll(".containerList:not(.jsGroupedUserList) li:not(.jsIgnoredUser)"),
+            ...document.querySelectorAll(".wbbBoardNode__lastPost"),
+            ...document.querySelectorAll(".gridListItem"),
+            ...document.querySelectorAll(".userMenuItem"),
+            ...document.querySelectorAll(".ck-mentions .ck-list__item")
+        ];
+
+        for (let listItem of listItems) {
+            for (let string of [...Object.values(blockedUsers), ...blockedStrings]) {
+                if (listItem.innerHTML.includes(string)) {
+                    listItem.remove();
+                    break;
+                }
             }
         }
     }
@@ -297,10 +324,10 @@ function filterContent() {
         userMenuInitDone = true;
     }
 
-    const sections = document.querySelectorAll(".section");
+    const contents = document.querySelectorAll(".layoutBoundary");
 
-    for (let section of sections) {
-        section.style.opacity = "1";
+    for (let content of contents) {
+        content.style.opacity = "1";
     }
 
     saveCookies();
