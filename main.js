@@ -267,7 +267,7 @@ function filterContent() {
                     seperator.remove();
                 }
 
-                if (seperator.nextElementSibling.nodeName === "HR") {
+                if (seperator.nextElementSibling && seperator.nextElementSibling.nodeName === "HR") {
                     seperator.remove();
                 }
             }
