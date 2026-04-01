@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "E39-Forum Inhaltsblocker",
   "description": "Entfernt blaue Balken und Zitate von geblockten Benutzern im E39-Forum.",
-  "version": "1.0",
+  "version": "1.1",
   "host_permissions": [
     "https://www.e39-forum.de/*"
   ],
